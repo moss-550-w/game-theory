@@ -301,7 +301,7 @@ export function TheoryDetail({ theoryId }: TheoryDetailProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.3 }}
-              className="mt-4 max-h-48 overflow-y-auto px-4"
+              className="mt-4 max-h-[60vh] overflow-y-auto px-4"
             >
               <ProofTree theoryId={theoryId} />
             </motion.div>

@@ -41,4 +41,24 @@ describe('ProofTree', () => {
     const expandButtons = screen.getAllByText(/点击展开/);
     expect(expandButtons).toHaveLength(4);
   });
+
+  it('展开布劳威尔分支挂载不动点交互件', async () => {
+    const user = userEvent.setup();
+    render(<ProofTree theoryId="nash" />);
+    await user.click(screen.getByRole('button', { name: /布劳威尔不动点定理/ }));
+    // 交互件 SVG（按 aria-label 前缀）出现
+    expect(screen.getByRole('img', { name: /brouwer 不动点交互图/ })).toBeInTheDocument();
+    // 文字冗余读出「不动点」数量（颜色 + 文字双编码）
+    expect(screen.getByText(/不动点 \d+ 个/)).toBeInTheDocument();
+    // 可拖控制点以 slider 角色暴露
+    expect(screen.getAllByRole('slider').length).toBeGreaterThan(0);
+  });
+
+  it('展开角谷分支显示集值（带状）不动点呈现', async () => {
+    const user = userEvent.setup();
+    render(<ProofTree theoryId="nash" />);
+    await user.click(screen.getByRole('button', { name: /角谷不动点定理/ }));
+    expect(screen.getByRole('img', { name: /kakutani 不动点交互图/ })).toBeInTheDocument();
+    expect(screen.getByText(/集值映射（带状）/)).toBeInTheDocument();
+  });
 });

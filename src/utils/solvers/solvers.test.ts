@@ -9,6 +9,13 @@ import {
   solveMixedStrategy,
 } from '@/utils/solvers/mixedStrategy';
 import { solveBackwardInduction, type GameNode } from '@/utils/solvers/backwardInduction';
+import {
+  evalCurve,
+  findFixedPoints,
+  clampMonotone,
+  findSetValuedFixedPoints,
+  type Pt,
+} from '@/utils/solvers/fixedPoint';
 
 describe('囚徒困境求解器', () => {
   it('默认收益矩阵：双方合作各得 3', () => {
@@ -107,5 +114,74 @@ describe('逆向归纳求解器', () => {
   it('返回路径中的节点 id', () => {
     const result = solveBackwardInduction(simpleTree);
     expect(result.equilibriumPath).toContain('root');
+  });
+});
+
+describe('不动点求解器', () => {
+  it('evalCurve 钳制到 [0,1] 并按分段线性插值', () => {
+    const pts: Pt[] = [
+      { x: 0, y: 0.2 },
+      { x: 1, y: 0.8 },
+    ];
+    expect(evalCurve(pts, 0.5)).toBeCloseTo(0.5);
+    // 越界取最近端点
+    expect(evalCurve(pts, -1)).toBeCloseTo(0.2);
+    expect(evalCurve(pts, 2)).toBeCloseTo(0.8);
+    // 结果钳制
+    expect(evalCurve([{ x: 0, y: 5 }, { x: 1, y: 5 }], 0.5)).toBe(1);
+  });
+
+  it('findFixedPoints：单次穿越对角线 → 恰 1 个不动点', () => {
+    // f(0)=0.8（在对角线上方），f(1)=0.2（下方），单调下降只穿一次
+    const fps = findFixedPoints([
+      { x: 0, y: 0.8 },
+      { x: 1, y: 0.2 },
+    ]);
+    expect(fps).toHaveLength(1);
+    expect(fps[0]).toBeCloseTo(0.5, 2);
+  });
+
+  it('findFixedPoints：恒等映射返回单一代表解（不爆炸成上百个）', () => {
+    const fps = findFixedPoints([
+      { x: 0, y: 0 },
+      { x: 1, y: 1 },
+    ]);
+    expect(fps).toHaveLength(1);
+  });
+
+  it('findFixedPoints：曲线始终在对角线上方 → 仍有边界不动点（连续自映射必有解）', () => {
+    // f(0)=0 是不动点；其余在上方
+    const fps = findFixedPoints([
+      { x: 0, y: 0 },
+      { x: 1, y: 0.5 },
+    ]);
+    expect(fps.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('clampMonotone：输出非减且钳制 [0,1]', () => {
+    const out = clampMonotone([
+      { x: 0, y: 0.5 },
+      { x: 0.5, y: 0.3 },
+      { x: 1, y: 1.4 },
+    ]);
+    expect(out.map((p) => p.y)).toEqual([0.5, 0.5, 1]);
+    for (let i = 1; i < out.length; i++) {
+      expect(out[i].y).toBeGreaterThanOrEqual(out[i - 1].y);
+    }
+  });
+
+  it('findSetValuedFixedPoints：带跨过对角线 → 返回相交区间', () => {
+    const lower: Pt[] = [
+      { x: 0, y: 0.6 },
+      { x: 1, y: 0.1 },
+    ];
+    const upper: Pt[] = [
+      { x: 0, y: 0.9 },
+      { x: 1, y: 0.4 },
+    ];
+    const intervals = findSetValuedFixedPoints(lower, upper);
+    expect(intervals.length).toBeGreaterThanOrEqual(1);
+    const iv = intervals[0];
+    expect(iv.end).toBeGreaterThanOrEqual(iv.start);
   });
 });
