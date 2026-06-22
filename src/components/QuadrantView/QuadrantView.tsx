@@ -3,12 +3,19 @@ import { computeQuadrantLayout } from '@/utils/layout/quadrantLayout';
 import { THEORIES } from '@/data';
 import type { Theory, TheoryId } from '@/types';
 import { QuadrantCell } from './QuadrantCell';
+import { RelationArrows } from './RelationArrows';
+import { TimeRing } from './TimeRing';
+import { ApplicationRing } from './ApplicationRing';
 
 const VIEW_W = 1000;
 const VIEW_H = 800;
 
+/** 环的半径参数（基于绘图区） */
+const RING_PAD = 38; // 象限盒外缘到环中心的距离
+
 interface QuadrantViewProps {
   onSelectTheory?: (id: TheoryId) => void;
+  ringsVisible?: boolean;
 }
 
 /**
@@ -16,7 +23,7 @@ interface QuadrantViewProps {
  * 以固定 viewBox + preserveAspectRatio 实现等比缩放的初步响应式；
  * 精细的断点堆叠留待 M9。关系箭头与环绕层在 M3 叠加。
  */
-export function QuadrantView({ onSelectTheory }: QuadrantViewProps) {
+export function QuadrantView({ onSelectTheory, ringsVisible = false }: QuadrantViewProps) {
   const layout = useMemo(
     () => computeQuadrantLayout({ width: VIEW_W, height: VIEW_H }),
     [],
@@ -32,6 +39,10 @@ export function QuadrantView({ onSelectTheory }: QuadrantViewProps) {
   const { plot, gap } = layout;
   const midX = plot.x + plot.width / 2;
   const midY = plot.y + plot.height / 2;
+  const ringCx = midX;
+  const ringCy = midY;
+  const innerRingRadius = Math.max(plot.width, plot.height) / 2 + RING_PAD;
+  const outerRingRadius = innerRingRadius + 52;
 
   return (
     <svg
@@ -89,6 +100,17 @@ export function QuadrantView({ onSelectTheory }: QuadrantViewProps) {
           />
         );
       })}
+
+      {/* 关系箭头叠加在象限之上（核心叙事主干） */}
+      <RelationArrows boxes={layout.boxes} />
+
+      {/* 环绕层（M3） */}
+      {ringsVisible && (
+        <>
+          <TimeRing cx={ringCx} cy={ringCy} radius={innerRingRadius} />
+          <ApplicationRing cx={ringCx} cy={ringCy} radius={outerRingRadius} />
+        </>
+      )}
     </svg>
   );
 }

@@ -43,8 +43,12 @@ export interface QuadrantLayout {
 export interface QuadrantLayoutOptions {
   width: number;
   height: number;
-  /** 绘图区四周留白（给坐标轴标签） */
+  /** 绘图区四周留白（给坐标轴标签）。被 paddingX/paddingY 覆盖。 */
   padding?: number;
+  /** 水平留白（用于为环绕层让出空间，居中正方形绘图区） */
+  paddingX?: number;
+  /** 垂直留白 */
+  paddingY?: number;
   /** 象限间隙 */
   gap?: number;
 }
@@ -70,13 +74,15 @@ const ORDER: Quadrant[] = ['top-left', 'top-right', 'bottom-left', 'bottom-right
 export function computeQuadrantLayout(opts: QuadrantLayoutOptions): QuadrantLayout {
   const { width, height } = opts;
   const padding = opts.padding ?? 64;
+  const paddingX = opts.paddingX ?? padding;
+  const paddingY = opts.paddingY ?? padding;
   const gap = opts.gap ?? 16;
 
   const plot = {
-    x: padding,
-    y: padding,
-    width: Math.max(0, width - padding * 2),
-    height: Math.max(0, height - padding * 2),
+    x: paddingX,
+    y: paddingY,
+    width: Math.max(0, width - paddingX * 2),
+    height: Math.max(0, height - paddingY * 2),
   };
 
   const cellW = (plot.width - gap) / 2;
@@ -100,13 +106,15 @@ export function computeQuadrantLayout(opts: QuadrantLayoutOptions): QuadrantLayo
 
   const midX = plot.x + plot.width / 2;
   const midY = plot.y + plot.height / 2;
+  const belowPlot = plot.y + plot.height + 24;
+  const leftOfPlot = plot.x - 12;
   const axes: AxisLabel[] = [
-    { text: '零和', x: plot.x, y: height - padding / 2.2, anchor: 'start' },
-    { text: '非零和', x: plot.x + plot.width, y: height - padding / 2.2, anchor: 'end' },
-    { text: '静态 · 完全信息', x: padding / 3, y: plot.y + plot.height, anchor: 'start' },
-    { text: '动态 · 不完全信息', x: padding / 3, y: plot.y, anchor: 'start' },
-    { text: '对抗 ↔ 合作', x: midX, y: height - padding / 2.2, anchor: 'middle' },
-    { text: '信息与时序', x: padding / 3, y: midY, anchor: 'start' },
+    { text: '零和', x: plot.x, y: belowPlot, anchor: 'start' },
+    { text: '对抗 ↔ 合作', x: midX, y: belowPlot, anchor: 'middle' },
+    { text: '非零和', x: plot.x + plot.width, y: belowPlot, anchor: 'end' },
+    { text: '动态 · 不完全信息', x: leftOfPlot, y: plot.y + 6, anchor: 'end' },
+    { text: '信息与时序', x: leftOfPlot, y: midY, anchor: 'end' },
+    { text: '静态 · 完全信息', x: leftOfPlot, y: plot.y + plot.height - 2, anchor: 'end' },
   ];
 
   return { boxes, axes, plot, gap };
