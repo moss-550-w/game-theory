@@ -11,6 +11,10 @@
   layer: foundation
   name: 拓扑学
   description: 紧凸集、连续映射与同伦，是不动点定理的舞台。
+- id: mathematical-induction
+  layer: foundation
+  name: 数学归纳法
+  description: 沿博弈树深度逆向归纳的证明骨架，保证有限步构造性论证有效。
 
 # —— 中间层：不动点定理群 ——
 - id: brouwer
@@ -29,6 +33,10 @@
   layer: core-theorem
   name: 塔斯基不动点定理
   description: 完备格上单调映射的不动点集非空，用于超模博弈。
+- id: lp-duality
+  layer: core-theorem
+  name: 线性规划对偶定理
+  description: 原问题与对偶问题在可行时最优值相等（强对偶），与极小极大定理等价。
 
 # —— 顶层应用 ——
 - id: best-response-map

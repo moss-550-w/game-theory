@@ -16,3 +16,15 @@
 - historyNodeId: nash-extension-incomplete
   mathToolId: kakutani
   label: 贝叶斯纳什均衡沿用同一不动点存在性框架
+
+- historyNodeId: minimax-refine-duality
+  mathToolId: lp-duality
+  label: 极小极大定理等价于线性规划强对偶，获得可计算证明
+
+- historyNodeId: backward-proposal
+  mathToolId: mathematical-induction
+  label: 子博弈完美均衡由博弈树上的逆向归纳（数学归纳）构造
+
+- historyNodeId: bayesian-proposal
+  mathToolId: kakutani
+  label: 贝叶斯纳什均衡经海萨尼转换后由角谷不动点定理保证存在

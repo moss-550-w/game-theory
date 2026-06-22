@@ -32,3 +32,29 @@
   applicability: 超模博弈（策略互补、收益满足递增差分）。
   prosCons: 给出单调均衡与最大/最小均衡的格结构；仅限超模结构。
   summary: 在策略构成的完备格上，最佳反应为单调映射，由塔斯基定理得不动点集非空且成格。
+
+# —— 极小极大定理存在性（minimax-theorem）——
+- id: minimax-theorem-lp
+  conclusionId: minimax-theorem
+  toolId: lp-duality
+  applicability: 两人零和有限博弈的混合策略扩展。
+  prosCons: 给出可计算的构造性证明并直接得出博弈值；依赖线性规划框架。
+  summary: 将求最优混合策略写成一对互为对偶的线性规划，强对偶定理保证两者最优值相等，该公共值即博弈的极小极大值。
+  analogy: 攻防双方各自“把最坏情况调到最好”，拔河到最后两边用力相等，绳结停在唯一的平衡刻度上。
+
+# —— 子博弈完美均衡存在性（spe-existence）——
+- id: spe-existence-induction
+  conclusionId: spe-existence
+  toolId: mathematical-induction
+  applicability: 有限完美信息扩展式博弈。
+  prosCons: 构造直接、必得纯策略均衡；不适用于不完美/不完全信息。
+  summary: 对博弈树深度作逆向归纳，在每个决策点选取最优行动，所得策略组合在每个子博弈上均最优，即库恩定理保证的子博弈完美均衡。
+  analogy: 下棋时先想清楚最后一步怎么走最好，再倒推前一步，一路回到开局。
+
+# —— 贝叶斯纳什均衡存在性（bayesian-nash-existence）——
+- id: bayesian-nash-existence-kakutani
+  conclusionId: bayesian-nash-existence
+  toolId: kakutani
+  applicability: 类型与行动均有限的贝叶斯博弈。
+  prosCons: 复用纳什存在性框架、迁移成本低；需先完成海萨尼转换。
+  summary: 经海萨尼转换把贝叶斯博弈化为类型空间上的标准博弈，对“类型→行动”的最佳反应对应应用角谷定理得不动点，即贝叶斯纳什均衡。

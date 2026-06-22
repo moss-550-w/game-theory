@@ -2,7 +2,21 @@
 # 字段约定见 src/types/index.ts -> HistoryNode
 # 同一史实在不同理论的历史线上可作为不同角色出现（前驱/提出/精炼/延伸）。
 
-# —— 极小极大定理 ——
+# —— 极小极大定理（前驱→提出→精炼→延伸）——
+- id: minimax-precursor-waldegrave
+  theoryId: minimax
+  role: precursor
+  year: 1713
+  title: 勒赫纸牌的极小极大解
+  contributor: 瓦尔德格雷夫
+  contribution: 已知最早的混合策略极小极大解，开“最坏情形最优化”之先河。
+- id: minimax-precursor-borel
+  theoryId: minimax
+  role: precursor
+  year: 1921
+  title: 对称博弈的混合策略研究
+  contributor: 波莱尔
+  contribution: 系统提出混合策略与极小极大思想，但怀疑一般定理不成立。
 - id: minimax-proposal
   theoryId: minimax
   role: proposal
@@ -12,11 +26,25 @@
   contribution: 证明两人零和博弈必存在混合策略下的鞍点解。
 - id: minimax-foundation-book
   theoryId: minimax
-  role: extension
+  role: refinement
   year: 1944
   title: 《博弈论与经济行为》
   contributor: 冯·诺依曼 & 摩根斯特恩
-  contribution: 奠定博弈论作为独立学科的公理化基础。
+  contribution: 系统化零和理论并奠定博弈论作为独立学科的公理化基础。
+- id: minimax-refine-duality
+  theoryId: minimax
+  role: refinement
+  year: 1947
+  title: 极小极大与线性规划对偶
+  contributor: 冯·诺依曼 & 丹齐格
+  contribution: 揭示极小极大定理等价于线性规划强对偶，给出可计算的全新视角。
+- id: minimax-extension-sion
+  theoryId: minimax
+  role: extension
+  year: 1958
+  title: 西翁极小极大定理
+  contributor: 西翁
+  contribution: 推广到凸集上拟凹—拟凸函数，摆脱有限/线性结构的限制。
 
 # —— 纳什均衡（样板：前驱→提出→精炼→延伸）——
 - id: nash-precursor-cournot
@@ -69,7 +97,28 @@
   contributor: 海萨尼
   contribution: 经海萨尼转换将均衡推广至信息不对称情形。
 
-# —— 逆向归纳均衡 ——
+# —— 逆向归纳均衡（前驱→提出→精炼→延伸）——
+- id: backward-precursor-zermelo
+  theoryId: backward-induction
+  role: precursor
+  year: 1913
+  title: 策梅洛定理
+  contributor: 策梅洛
+  contribution: 以国际象棋证明有限完美信息博弈可由逆推确定，奠定逆向归纳逻辑。
+- id: backward-precursor-stackelberg
+  theoryId: backward-induction
+  role: precursor
+  year: 1934
+  title: 斯塔克尔伯格领导者模型
+  contributor: 斯塔克尔伯格
+  contribution: 先动—后动的序贯产量竞争，以逆推求解领导者最优。
+- id: backward-precursor-kuhn
+  theoryId: backward-induction
+  role: precursor
+  year: 1953
+  title: 扩展式博弈与库恩定理
+  contributor: 库恩
+  contribution: 形式化扩展式与行为策略，确立完美信息下逆向归纳的存在性基础。
 - id: backward-proposal
   theoryId: backward-induction
   role: proposal
@@ -77,8 +126,36 @@
   title: 子博弈完美均衡
   contributor: 泽尔腾
   contribution: 要求策略在每个子博弈上均为纳什均衡，排除不可信威胁。
+- id: backward-refine-centipede
+  theoryId: backward-induction
+  role: refinement
+  year: 1981
+  title: 蜈蚣博弈
+  contributor: 罗森塔尔
+  contribution: 以反直觉结果质疑逆向归纳的现实合理性，引发理性共识之辩。
+- id: backward-extension-sequential
+  theoryId: backward-induction
+  role: extension
+  year: 1982
+  title: 序贯均衡
+  contributor: 克雷普斯 & 威尔逊
+  contribution: 将子博弈完美推广到不完美信息，联合策略与信念的一致性。
 
-# —— 贝叶斯均衡 ——
+# —— 贝叶斯均衡（前驱→提出→精炼→延伸）——
+- id: bayesian-precursor-bayes
+  theoryId: bayesian
+  role: precursor
+  year: 1763
+  title: 贝叶斯定理
+  contributor: 贝叶斯（遗作发表）
+  contribution: 给出依证据更新信念的条件概率法则，是类型信念推理的数学根基。
+- id: bayesian-precursor-vickrey
+  theoryId: bayesian
+  role: precursor
+  year: 1961
+  title: 维克里拍卖
+  contributor: 维克里
+  contribution: 不完全信息下的密封拍卖分析，催生对类型与信念建模的需求。
 - id: bayesian-proposal
   theoryId: bayesian
   role: proposal
@@ -86,6 +163,13 @@
   title: 海萨尼转换与贝叶斯博弈
   contributor: 海萨尼
   contribution: 用“自然选择类型”把不完全信息博弈化归为不完美信息博弈。
+- id: bayesian-refine-revelation
+  theoryId: bayesian
+  role: refinement
+  year: 1979
+  title: 显示原理
+  contributor: 梅尔森
+  contribution: 表明任意均衡结果可由激励相容的直接机制实现，精炼贝叶斯分析工具。
 - id: bayesian-extension-pbe
   theoryId: bayesian
   role: extension
