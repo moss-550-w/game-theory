@@ -5,6 +5,7 @@ import yaml from '@rollup/plugin-yaml';
 import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
+  base: '/game-theory/',
   plugins: [react(), yaml()],
   resolve: {
     alias: {
