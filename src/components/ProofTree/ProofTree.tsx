@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PROOFS, MATH_TOOLS, CROSS_LINKS } from '@/data';
 import { getProofsForTheory } from '@/utils/layout/proofTreeLayout';
 import { THEORY_COLOR } from '@/utils/theoryColor';
-import type { TheoryId, MathLayer } from '@/types';
+import type { ProofBranch, TheoryId, MathLayer } from '@/types';
 
 const LAYER_LABEL: Record<MathLayer, string> = {
   foundation: '底层基础',

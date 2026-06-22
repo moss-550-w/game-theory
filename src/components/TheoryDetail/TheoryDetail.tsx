@@ -1,8 +1,9 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { computeDualSpiral, LAYER_ORDER } from '@/utils/layout/spiralLayout';
 import { THEORIES, EVENTS, MATH_TOOLS, PROOFS, CROSS_LINKS } from '@/data';
 import { useViewStore } from '@/store/viewStore';
 import { THEORY_COLOR } from '@/utils/theoryColor';
+import { ProofTree } from '@/components/ProofTree/ProofTree';
 import type { TheoryId } from '@/types';
 
 const VIEW_W = 1200;
@@ -278,6 +279,21 @@ export function TheoryDetail({ theoryId }: TheoryDetailProps) {
             </g>
           )}
         </svg>
+
+        {/* 数学聚焦模式下展示多分支证明树（design.md §3.3） */}
+        <AnimatePresence>
+          {perspective === 'math' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="mt-4 max-h-48 overflow-y-auto px-4"
+            >
+              <ProofTree theoryId={theoryId} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
