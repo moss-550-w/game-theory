@@ -1,26 +1,56 @@
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { QuadrantView } from '@/components/QuadrantView/QuadrantView';
 import { RingToggles } from '@/components/QuadrantView/RingToggles';
+import { CompareCards } from '@/components/Filters/CompareMode';
+import { TagFilter, ApplicationFilter, CompareModeToggle } from '@/components/Filters/TagFilter';
 import { TheoryDetail } from '@/components/TheoryDetail/TheoryDetail';
 import { useViewStore } from '@/store/viewStore';
+import { useFilterStore } from '@/store/filterStore';
 import type { TheoryId } from '@/types';
 
 export default function App() {
   const mode = useViewStore((s) => s.mode);
   const focusedId = useViewStore((s) => s.focusedTheory);
+  const compareMode = useFilterStore((s) => s.compareSelection.length >= 2);
+
+  const handleSelectTheory = (id: TheoryId) => {
+    if (useFilterStore.getState().compareSelection.length >= 2) {
+      // 对比模式下不进入深度视图，由对比卡片处理跳转
+      return;
+    }
+    useViewStore.getState().focusTheory(id);
+  };
+
+  const handleToggleCompare = (id: TheoryId) => {
+    useFilterStore.getState().toggleCompare(id);
+  };
 
   return (
     <div className="flex h-screen flex-col bg-canvas-bg text-slate-100">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-6 py-4">
-        <div>
-          <h1 className="text-lg font-semibold tracking-wide">博弈论思想演进全景</h1>
-          <p className="mt-1 text-sm text-slate-400">
-            {mode === 'detail'
-              ? '深度探索视图 · 双重螺旋'
-              : '四象限理论版图 · 点击任一支柱进入深度探索'}
-          </p>
+      <header className="border-b border-white/10 px-6 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-lg font-semibold tracking-wide">博弈论思想演进全景</h1>
+            <p className="mt-1 text-sm text-slate-400">
+              {mode === 'detail'
+                ? '深度探索视图 · 双重螺旋'
+                : '四象限理论版图 · 点击任一支柱进入深度探索'}
+            </p>
+          </div>
+          <RingToggles />
         </div>
-        <RingToggles />
+
+        {mode === 'quadrant' && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-3 flex flex-wrap items-center gap-4"
+          >
+            <TagFilter />
+            <ApplicationFilter />
+            <CompareModeToggle />
+          </motion.div>
+        )}
       </header>
 
       <main className="min-h-0 flex-1 overflow-hidden">
@@ -28,10 +58,17 @@ export default function App() {
           {mode === 'detail' && focusedId ? (
             <TheoryDetail key="detail" theoryId={focusedId as TheoryId} />
           ) : (
-            <QuadrantView key="quadrant" />
+            <QuadrantView
+              key="quadrant"
+              compareMode={compareMode}
+              onToggleCompare={handleToggleCompare}
+              onSelectTheory={handleSelectTheory}
+            />
           )}
         </AnimatePresence>
       </main>
+
+      <CompareCards onNavigateToTheory={useViewStore.getState().focusTheory} />
     </div>
   );
 }

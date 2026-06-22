@@ -1,6 +1,11 @@
 import { useMemo, useState } from 'react';
 import { computeQuadrantLayout } from '@/utils/layout/quadrantLayout';
 import { THEORIES } from '@/data';
+import {
+  useFilterStore,
+  theoryMatchesTags,
+  getTheoriesForApplication,
+} from '@/store/filterStore';
 import type { Theory, TheoryId } from '@/types';
 import { QuadrantCell } from './QuadrantCell';
 import { RelationArrows } from './RelationArrows';
@@ -10,25 +15,35 @@ import { ApplicationRing } from './ApplicationRing';
 const VIEW_W = 1000;
 const VIEW_H = 800;
 
-/** 环的半径参数（基于绘图区） */
-const RING_PAD = 38; // 象限盒外缘到环中心的距离
+const RING_PAD = 38;
 
 interface QuadrantViewProps {
   onSelectTheory?: (id: TheoryId) => void;
   ringsVisible?: boolean;
+  compareMode?: boolean;
+  onToggleCompare?: (id: TheoryId) => void;
 }
 
-/**
- * 四象限主视图（静态，M2）。
- * 以固定 viewBox + preserveAspectRatio 实现等比缩放的初步响应式；
- * 精细的断点堆叠留待 M9。关系箭头与环绕层在 M3 叠加。
- */
-export function QuadrantView({ onSelectTheory, ringsVisible = false }: QuadrantViewProps) {
+export function QuadrantView({
+  onSelectTheory,
+  ringsVisible = false,
+  compareMode = false,
+  onToggleCompare,
+}: QuadrantViewProps) {
   const layout = useMemo(
     () => computeQuadrantLayout({ width: VIEW_W, height: VIEW_H }),
     [],
   );
   const [hovered, setHovered] = useState<TheoryId | null>(null);
+
+  const activeTags = useFilterStore((s) => s.activeTags);
+  const activeApplication = useFilterStore((s) => s.activeApplication);
+  const compareSelection = useFilterStore((s) => s.compareSelection);
+
+  const appRelatedIds = useMemo(
+    () => (activeApplication ? new Set(getTheoriesForApplication(activeApplication)) : null),
+    [activeApplication],
+  );
 
   const theoryById = useMemo(() => {
     const map = new Map<TheoryId, Theory>();
@@ -39,10 +54,6 @@ export function QuadrantView({ onSelectTheory, ringsVisible = false }: QuadrantV
   const { plot, gap } = layout;
   const midX = plot.x + plot.width / 2;
   const midY = plot.y + plot.height / 2;
-  const ringCx = midX;
-  const ringCy = midY;
-  const innerRingRadius = Math.max(plot.width, plot.height) / 2 + RING_PAD;
-  const outerRingRadius = innerRingRadius + 52;
 
   return (
     <svg
@@ -53,24 +64,21 @@ export function QuadrantView({ onSelectTheory, ringsVisible = false }: QuadrantV
       aria-label="博弈论四象限理论版图"
     >
       <defs>
-        {/* 象限交界的渐变模糊：中心融合带发光（design.md §2.1 模糊边界） */}
         <filter id="boundary-blur" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="6" />
         </filter>
         <radialGradient id="fusion-glow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.16" />
-          <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+          <stop offset="100%" stopColor="#FFFFFF" stopOpacity={0} />
         </radialGradient>
       </defs>
 
-      {/* 中央十字分隔（模糊柔化，非硬边界） */}
       <g filter="url(#boundary-blur)" stroke="#94A3B8" strokeOpacity={0.25} strokeWidth={2}>
         <line x1={midX} y1={plot.y} x2={midX} y2={plot.y + plot.height} />
         <line x1={plot.x} y1={midY} x2={plot.x + plot.width} y2={midY} />
       </g>
       <circle cx={midX} cy={midY} r={gap * 4} fill="url(#fusion-glow)" />
 
-      {/* 坐标轴语义标签 */}
       {layout.axes.map((a, i) => (
         <text
           key={i}
@@ -85,30 +93,39 @@ export function QuadrantView({ onSelectTheory, ringsVisible = false }: QuadrantV
         </text>
       ))}
 
-      {/* 四象限 */}
       {layout.boxes.map((box) => {
         const theory = theoryById.get(box.theoryId);
         if (!theory) return null;
+
+        const tagMatch = theoryMatchesTags(theory.tags, activeTags);
+        const appMatch = appRelatedIds ? appRelatedIds.has(theory.id) : true;
+        const dimmed = activeTags.length > 0 || activeApplication !== null
+          ? !(tagMatch && appMatch)
+          : false;
+        const inCompare = compareSelection.includes(theory.id);
+
         return (
           <QuadrantCell
             key={box.quadrant}
             box={box}
             theory={theory}
             focused={hovered === theory.id}
+            dimmed={dimmed}
+            inCompare={inCompare}
+            compareMode={compareMode}
             onHover={setHovered}
-            onSelect={(id) => onSelectTheory?.(id)}
+            onSelect={onSelectTheory ?? (() => {})}
+            onToggleCompare={onToggleCompare}
           />
         );
       })}
 
-      {/* 关系箭头叠加在象限之上（核心叙事主干） */}
       <RelationArrows boxes={layout.boxes} />
 
-      {/* 环绕层（M3） */}
       {ringsVisible && (
         <>
-          <TimeRing cx={ringCx} cy={ringCy} radius={innerRingRadius} />
-          <ApplicationRing cx={ringCx} cy={ringCy} radius={outerRingRadius} />
+          <TimeRing cx={midX} cy={midY} radius={Math.max(plot.width, plot.height) / 2 + RING_PAD} />
+          <ApplicationRing cx={midX} cy={midY} radius={Math.max(plot.width, plot.height) / 2 + RING_PAD + 52} />
         </>
       )}
     </svg>
