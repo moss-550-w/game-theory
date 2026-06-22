@@ -1,0 +1,30 @@
+# 应用领域（design.md §2.3 应用环, §5.2）
+# 字段约定见 src/types/index.ts -> Application
+# relatedTheories 为一对多映射。
+
+- id: auction
+  name: 拍卖理论
+  relatedTheories: [nash, bayesian, backward-induction]
+  milestones:
+    - { year: 1961, title: 维克里拍卖 }
+    - { year: 1994, title: 美国频谱拍卖 }
+
+- id: arms-control
+  name: 军控与威慑
+  relatedTheories: [minimax, nash, backward-induction]
+  milestones:
+    - { year: 1960, title: 《冲突的战略》（谢林） }
+
+- id: evolutionary-biology
+  name: 演化生物学
+  relatedTheories: [nash]
+  milestones:
+    - { year: 1973, title: 进化稳定策略概念提出 }
+    - { year: 1982, title: 《演化与博弈论》 }
+
+- id: industrial-competition
+  name: 产业竞争
+  relatedTheories: [nash, backward-induction]
+  milestones:
+    - { year: 1838, title: 古诺产量竞争 }
+    - { year: 1883, title: 伯特兰价格竞争 }

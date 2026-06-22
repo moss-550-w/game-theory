@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import App from '@/App';
-import { THEORIES } from '@/data/theories';
+import { THEORIES } from '@/data';
 
 describe('App 应用壳', () => {
   it('渲染标题', () => {

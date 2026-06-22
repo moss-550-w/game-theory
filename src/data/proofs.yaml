@@ -1,0 +1,34 @@
+# 多分支证明树（design.md §3.3）
+# 字段约定见 src/types/index.ts -> ProofBranch
+# 原则（claude.md）：多分支平等呈现，不暗示唯一“标准证明”。
+# conclusionId: nash-existence —— 纳什均衡存在性
+
+- id: nash-existence-kakutani
+  conclusionId: nash-existence
+  toolId: kakutani
+  applicability: 纯策略空间为紧凸集、支付函数拟凹的有限混合扩展。
+  prosCons: 一般性强，是纳什 1950 原始证明；构造较抽象。
+  summary: 将最佳反应对应视为混合策略单纯形上的上半连续凸值映射，由角谷定理得不动点即纳什均衡。
+  analogy: 像在一张地图上反复“走向离你最近的最优点”，最终一定走到一个谁也不想再挪动的点。
+
+- id: nash-existence-brouwer
+  conclusionId: nash-existence
+  toolId: brouwer
+  applicability: 对称博弈或可构造连续函数（如纳什映射）的情形。
+  prosCons: 构造简单直观、只需单值连续映射；牺牲部分一般性。
+  summary: 构造一个把策略单纯形映到自身的连续函数（纳什映射），其不动点对应均衡，由布劳威尔定理保证存在。
+  analogy: 搅一杯咖啡，总有一个液滴回到原位——连续地搅动平面必留一个不动点。
+
+- id: nash-existence-fan-glicksberg
+  conclusionId: nash-existence
+  toolId: fan-glicksberg
+  applicability: 连续（无限）策略空间、紧凸的局部凸空间。
+  prosCons: 把存在性推广到连续策略博弈；需要更强的拓扑前提。
+  summary: 在局部凸拓扑向量空间上对最佳反应对应应用范美·格利克斯伯格定理，得到连续策略博弈的均衡存在性。
+
+- id: nash-existence-tarski
+  conclusionId: nash-existence
+  toolId: tarski
+  applicability: 超模博弈（策略互补、收益满足递增差分）。
+  prosCons: 给出单调均衡与最大/最小均衡的格结构；仅限超模结构。
+  summary: 在策略构成的完备格上，最佳反应为单调映射，由塔斯基定理得不动点集非空且成格。

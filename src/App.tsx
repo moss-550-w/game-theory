@@ -1,4 +1,4 @@
-import { THEORIES } from '@/data/theories';
+import { THEORIES } from '@/data';
 
 /**
  * 应用壳（M0）。

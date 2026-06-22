@@ -1,0 +1,43 @@
+# 数学支撑线工具（design.md §3.1 右侧数学线）
+# 字段约定见 src/types/index.ts -> MathTool
+# layer: foundation | core-theorem | application | refinement
+
+# —— 底层基础 ——
+- id: real-analysis
+  layer: foundation
+  name: 实分析
+  description: 连续性、紧致性与极值存在性的分析基础。
+- id: topology
+  layer: foundation
+  name: 拓扑学
+  description: 紧凸集、连续映射与同伦，是不动点定理的舞台。
+
+# —— 中间层：不动点定理群 ——
+- id: brouwer
+  layer: core-theorem
+  name: 布劳威尔不动点定理
+  description: 紧凸集到自身的连续映射必有不动点。
+- id: kakutani
+  layer: core-theorem
+  name: 角谷不动点定理
+  description: 将布劳威尔推广到上半连续的凸值集值映射。
+- id: fan-glicksberg
+  layer: core-theorem
+  name: 范美·格利克斯伯格不动点定理
+  description: 将角谷定理推广到局部凸拓扑向量空间（连续策略空间）。
+- id: tarski
+  layer: core-theorem
+  name: 塔斯基不动点定理
+  description: 完备格上单调映射的不动点集非空，用于超模博弈。
+
+# —— 顶层应用 ——
+- id: best-response-map
+  layer: application
+  name: 最佳反应映射构造
+  description: 将均衡刻画为最佳反应对应的不动点。
+
+# —— 精炼 ——
+- id: perturbation-stability
+  layer: refinement
+  name: 扰动稳定性分析
+  description: 通过对策略施加小扰动筛选稳健均衡（颤抖手等）。

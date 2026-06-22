@@ -1,10 +1,11 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import yaml from '@rollup/plugin-yaml';
 import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), yaml()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

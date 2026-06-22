@@ -1,0 +1,95 @@
+# 历史演进节点（design.md §3.1）
+# 字段约定见 src/types/index.ts -> HistoryNode
+# 同一史实在不同理论的历史线上可作为不同角色出现（前驱/提出/精炼/延伸）。
+
+# —— 极小极大定理 ——
+- id: minimax-proposal
+  theoryId: minimax
+  role: proposal
+  year: 1928
+  title: 极小极大定理
+  contributor: 冯·诺依曼
+  contribution: 证明两人零和博弈必存在混合策略下的鞍点解。
+- id: minimax-foundation-book
+  theoryId: minimax
+  role: extension
+  year: 1944
+  title: 《博弈论与经济行为》
+  contributor: 冯·诺依曼 & 摩根斯特恩
+  contribution: 奠定博弈论作为独立学科的公理化基础。
+
+# —— 纳什均衡（样板：前驱→提出→精炼→延伸）——
+- id: nash-precursor-cournot
+  theoryId: nash
+  role: precursor
+  year: 1838
+  title: 古诺双寡头模型
+  contributor: 古诺
+  contribution: 最早隐含“最佳反应”思想的产量竞争均衡。
+- id: nash-precursor-minimax
+  theoryId: nash
+  role: precursor
+  year: 1928
+  title: 极小极大定理
+  contributor: 冯·诺依曼
+  contribution: 为均衡存在性提供零和情形下的先例与方法启发。
+- id: nash-proposal
+  theoryId: nash
+  role: proposal
+  year: 1950
+  title: 纳什均衡
+  contributor: 纳什
+  contribution: 将均衡概念推广到任意有限非合作博弈并证明存在性。
+- id: nash-refine-prisoners
+  theoryId: nash
+  role: refinement
+  year: 1950
+  title: 囚徒困境
+  contributor: 弗勒德 & 德雷舍（塔克命名）
+  contribution: 揭示个体理性与集体理性的冲突，挑战均衡的“最优性”直觉。
+- id: nash-refine-trembling-hand
+  theoryId: nash
+  role: refinement
+  year: 1975
+  title: 颤抖手均衡
+  contributor: 泽尔腾
+  contribution: 引入扰动稳定性，剔除依赖零概率事件的脆弱均衡。
+- id: nash-refine-ess
+  theoryId: nash
+  role: refinement
+  year: 1982
+  title: 进化稳定策略
+  contributor: 梅纳德·史密斯
+  contribution: 以进化动力学为均衡提供无理性假设的演化解释。
+- id: nash-extension-incomplete
+  theoryId: nash
+  role: extension
+  year: 1967
+  title: 不完全信息纳什均衡
+  contributor: 海萨尼
+  contribution: 经海萨尼转换将均衡推广至信息不对称情形。
+
+# —— 逆向归纳均衡 ——
+- id: backward-proposal
+  theoryId: backward-induction
+  role: proposal
+  year: 1965
+  title: 子博弈完美均衡
+  contributor: 泽尔腾
+  contribution: 要求策略在每个子博弈上均为纳什均衡，排除不可信威胁。
+
+# —— 贝叶斯均衡 ——
+- id: bayesian-proposal
+  theoryId: bayesian
+  role: proposal
+  year: 1967
+  title: 海萨尼转换与贝叶斯博弈
+  contributor: 海萨尼
+  contribution: 用“自然选择类型”把不完全信息博弈化归为不完美信息博弈。
+- id: bayesian-extension-pbe
+  theoryId: bayesian
+  role: extension
+  year: 1991
+  title: 完美贝叶斯均衡
+  contributor: 弗登伯格 & 梯若尔
+  contribution: 在动态不完全信息博弈中联合策略与信念的一致性要求。

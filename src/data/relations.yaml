@@ -1,0 +1,34 @@
+# 理论间继承/批判关系 —— 核心叙事主干（design.md §2.2）
+# 字段约定见 src/types/index.ts -> Relation
+
+- from: minimax
+  to: nash
+  kind: generalization
+  style: solid
+  label: 从零和到非零和的推广
+  year: 1950
+  author: 纳什
+
+- from: nash
+  to: backward-induction
+  kind: refinement
+  style: solid
+  label: 从静态到动态，排除不可信威胁
+  year: 1965
+  author: 泽尔腾
+
+- from: nash
+  to: bayesian
+  kind: transformation
+  style: solid
+  label: 从完全信息到不完全信息，海萨尼转换
+  year: 1967
+  author: 海萨尼
+
+- from: backward-induction
+  to: bayesian
+  kind: fusion
+  style: dashed
+  label: 不完全信息动态博弈的融合（完美贝叶斯均衡）
+  year: 1991
+  author: 后续发展

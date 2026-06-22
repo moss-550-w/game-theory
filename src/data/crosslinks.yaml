@@ -1,0 +1,18 @@
+# 历史需求 ↔ 数学工具 映射（design.md §3.1 步骤 3 的交叉连线）
+# 字段约定见 src/types/index.ts -> CrossLink
+
+- historyNodeId: nash-proposal
+  mathToolId: kakutani
+  label: 从角谷不动点定理借来存在性证明（纳什 1950）
+
+- historyNodeId: nash-refine-trembling-hand
+  mathToolId: perturbation-stability
+  label: 用扰动稳定性分析剔除不可信的脆弱均衡
+
+- historyNodeId: minimax-proposal
+  mathToolId: brouwer
+  label: 零和鞍点的存在性可由布劳威尔类不动点论证
+
+- historyNodeId: nash-extension-incomplete
+  mathToolId: kakutani
+  label: 贝叶斯纳什均衡沿用同一不动点存在性框架
