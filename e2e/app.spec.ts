@@ -7,15 +7,16 @@ test.describe('应用主页', () => {
 
   test('加载后显示标题和四象限', async ({ page }) => {
     await expect(page.getByText('博弈论思想演进全景')).toBeVisible();
-    await expect(page.getByText('极小极大定理')).toBeVisible();
-    await expect(page.getByText('纳什均衡')).toBeVisible();
-    await expect(page.getByText('逆向归纳均衡')).toBeVisible();
-    await expect(page.getByText('贝叶斯均衡')).toBeVisible();
+    await expect(page.getByRole('button', { name: /极小极大定理/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /纳什均衡/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /逆向归纳均衡/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /贝叶斯均衡/ })).toBeVisible();
   });
 
   test('坐标轴标签可见', async ({ page }) => {
-    await expect(page.getByText('零和')).toBeVisible();
-    await expect(page.getByText('非零和')).toBeVisible();
+    // 限定在 SVG 图内查找，避免与筛选按钮冲突
+    await expect(page.getByLabel('博弈论四象限理论版图').getByText('零和', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('博弈论四象限理论版图').getByText('非零和', { exact: true })).toBeVisible();
   });
 });
 

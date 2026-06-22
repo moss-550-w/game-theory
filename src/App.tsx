@@ -23,10 +23,10 @@ export default function App() {
   const mode = useViewStore((s) => s.mode);
   const focusedId = useViewStore((s) => s.focusedTheory);
   const activeSimulator = useViewStore((s) => s.activeSimulator);
-  const compareMode = useFilterStore((s) => s.compareSelection.length >= 2);
+  const compareModeEnabled = useFilterStore((s) => s.compareModeEnabled);
 
   const handleSelectTheory = (id: TheoryId) => {
-    if (useFilterStore.getState().compareSelection.length >= 2) return;
+    if (compareModeEnabled) return;
     useViewStore.getState().focusTheory(id);
   };
 
@@ -86,7 +86,7 @@ export default function App() {
           ) : (
             <ResponsiveQuadrantView
               key="quadrant"
-              compareMode={compareMode}
+              compareMode={compareModeEnabled}
               onToggleCompare={handleToggleCompare}
               onSelectTheory={handleSelectTheory}
             />
