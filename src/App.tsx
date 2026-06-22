@@ -41,6 +41,14 @@ export default function App() {
 
   return (
     <div className="flex h-screen flex-col bg-canvas-bg text-slate-100">
+      {/* Skip to main content — accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:text-gray-900"
+      >
+        跳转到主要内容
+      </a>
+
       <header className="border-b border-white/10 px-6 py-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

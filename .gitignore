@@ -13,6 +13,8 @@ coverage
 playwright-report
 test-results
 .playwright
+e2e/playwright-report
+e2e/test-results
 
 # editor / os
 .vscode/*
