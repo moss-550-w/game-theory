@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   ANCHOR_XS,
   DEFAULT_YS,
@@ -58,10 +58,16 @@ export function FixedPointWidget({ variant, themeColor }: FixedPointWidgetProps)
   const lowerPts: Pt[] = centerPts.map((p) => ({ x: p.x, y: clamp01(p.y - BAND_HALF_WIDTH) }));
   const upperPts: Pt[] = centerPts.map((p) => ({ x: p.x, y: clamp01(p.y + BAND_HALF_WIDTH) }));
 
+  // findFixedPoints / findSetValuedFixedPoints 均返回升序 → 用排序索引作跨帧稳定身份：
+  // 数目稳定时 key=i 不变 → cx/cy 平滑跟随；数目突变时边界索引进/出 → AnimatePresence 强调。
   const fixedPoints = band ? [] : findFixedPoints(centerPts);
   const intervals = band ? findSetValuedFixedPoints(lowerPts, upperPts) : [];
-  const least = fixedPoints.length ? Math.min(...fixedPoints) : null;
-  const greatest = fixedPoints.length ? Math.max(...fixedPoints) : null;
+
+  // 动画过渡（reduce-motion 时全部瞬时）
+  const followSpring = reduce ? { duration: 0 } : { type: 'spring' as const, stiffness: 300, damping: 22 };
+  const popSpring = reduce ? { duration: 0 } : { type: 'spring' as const, stiffness: 500, damping: 24 };
+  const morph = reduce ? { duration: 0 } : { type: 'spring' as const, stiffness: 700, damping: 42 };
+  const fade = { duration: reduce ? 0 : 0.25 };
 
   // 无障碍：文字冗余读出当前不动点（颜色 + 文字双编码）
   const readout = band
@@ -103,65 +109,107 @@ export function FixedPointWidget({ variant, themeColor }: FixedPointWidgetProps)
           y = x
         </text>
 
-        {/* 集值不动点区间（带变体）：对角线上的粗线段 */}
-        {intervals.map((iv) => (
-          <line
-            key={`iv-${iv.start.toFixed(3)}`}
-            x1={scale.sx(iv.start)}
-            y1={scale.sy(iv.start)}
-            x2={scale.sx(iv.end)}
-            y2={scale.sy(iv.end)}
-            stroke="#34D399"
-            strokeWidth={6}
-            strokeLinecap="round"
-          />
-        ))}
+        {/* 集值不动点区间（带变体）：端点平滑跟随 + 诞生/湮灭 */}
+        <AnimatePresence>
+          {intervals.map((iv, i) => (
+            <motion.line
+              key={i}
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: 1,
+                x1: scale.sx(iv.start),
+                y1: scale.sy(iv.start),
+                x2: scale.sx(iv.end),
+                y2: scale.sy(iv.end),
+              }}
+              exit={{ opacity: 0 }}
+              transition={{ x1: followSpring, y1: followSpring, x2: followSpring, y2: followSpring, opacity: fade }}
+              stroke="#34D399"
+              strokeWidth={6}
+              strokeLinecap="round"
+            />
+          ))}
+        </AnimatePresence>
 
-        {/* band 变体：上下边界 + 填充带 */}
+        {/* band 变体：上下边界 + 填充带（d 随手 spring 形变） */}
         {band ? (
           <>
-            <path d={bandToPath(lowerPts, upperPts, scale)} fill={themeColor} fillOpacity={0.15} stroke="none" />
-            <path d={pointsToPath(lowerPts, scale)} fill="none" stroke={themeColor} strokeWidth={1.5} strokeOpacity={0.7} />
-            <path d={pointsToPath(upperPts, scale)} fill="none" stroke={themeColor} strokeWidth={1.5} strokeOpacity={0.7} />
+            <motion.path
+              animate={{ d: bandToPath(lowerPts, upperPts, scale) }}
+              transition={{ d: morph }}
+              fill={themeColor}
+              fillOpacity={0.15}
+              stroke="none"
+            />
+            <motion.path
+              animate={{ d: pointsToPath(lowerPts, scale) }}
+              transition={{ d: morph }}
+              fill="none"
+              stroke={themeColor}
+              strokeWidth={1.5}
+              strokeOpacity={0.7}
+            />
+            <motion.path
+              animate={{ d: pointsToPath(upperPts, scale) }}
+              transition={{ d: morph }}
+              fill="none"
+              stroke={themeColor}
+              strokeWidth={1.5}
+              strokeOpacity={0.7}
+            />
           </>
         ) : (
           <motion.path
-            initial={reduce ? false : { pathLength: 0 }}
-            animate={reduce ? undefined : { pathLength: 1 }}
-            transition={{ duration: 0.5 }}
-            d={pointsToPath(centerPts, scale)}
+            initial={{ opacity: reduce ? 1 : 0 }}
+            animate={{ opacity: 1, d: pointsToPath(centerPts, scale) }}
+            transition={{ d: morph, opacity: { duration: reduce ? 0 : 0.4 } }}
             fill="none"
             stroke={themeColor}
             strokeWidth={2.5}
           />
         )}
 
-        {/* 单值不动点标记 */}
-        {fixedPoints.map((fp) => {
-          const isLeast = variant === 'tarski' && fp === least && least !== greatest;
-          const isGreatest = variant === 'tarski' && fp === greatest && least !== greatest;
-          return (
-            <g key={`fp-${fp.toFixed(3)}`}>
-              {reduce ? (
-                <circle cx={scale.sx(fp)} cy={scale.sy(fp)} r={5} fill="#34D399" />
-              ) : (
+        {/* 单值不动点标记：跟手平滑滑动（1）+ 诞生放大淡入 / 湮灭收缩淡出（2） */}
+        <AnimatePresence>
+          {fixedPoints.map((fp, i) => {
+            const multi = fixedPoints.length > 1;
+            const isLeast = variant === 'tarski' && multi && i === 0;
+            const isGreatest = variant === 'tarski' && multi && i === fixedPoints.length - 1;
+            const cx = scale.sx(fp);
+            const cy = scale.sy(fp);
+            return (
+              <motion.g key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ opacity: fade }}>
+                {/* 待机光晕：独立元素，不与进/出冲突 */}
+                {!reduce && (
+                  <motion.circle
+                    fill="none"
+                    stroke="#34D399"
+                    strokeWidth={1.5}
+                    animate={{ cx, cy, r: [5, 12], opacity: [0.5, 0] }}
+                    transition={{
+                      cx: followSpring,
+                      cy: followSpring,
+                      r: { duration: 1.6, repeat: Infinity, ease: 'easeOut' },
+                      opacity: { duration: 1.6, repeat: Infinity, ease: 'easeOut' },
+                    }}
+                  />
+                )}
+                {/* 实心点：cx/cy 弹簧跟手；诞生时 r 0→5 弹出 */}
                 <motion.circle
-                  cx={scale.sx(fp)}
-                  cy={scale.sy(fp)}
-                  r={5}
                   fill="#34D399"
-                  animate={{ r: [5, 8, 5] }}
-                  transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                  initial={{ r: reduce ? 5 : 0 }}
+                  animate={{ cx, cy, r: 5 }}
+                  transition={{ cx: followSpring, cy: followSpring, r: popSpring }}
                 />
-              )}
-              {(isLeast || isGreatest) && (
-                <text x={scale.sx(fp)} y={scale.sy(fp) - 12} textAnchor="middle" fontSize={9} fill="#34D399">
-                  {isLeast ? '最小' : '最大'}
-                </text>
-              )}
-            </g>
-          );
-        })}
+                {(isLeast || isGreatest) && (
+                  <text x={cx} y={cy - 12} textAnchor="middle" fontSize={9} fill="#34D399">
+                    {isLeast ? '最小' : '最大'}
+                  </text>
+                )}
+              </motion.g>
+            );
+          })}
+        </AnimatePresence>
 
         {/* 可拖控制点（通用原语 DragHandle） */}
         {centerPts.map((p, i) => (
