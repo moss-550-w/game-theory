@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { DetailPanel } from '@/components/DetailPanel/DetailPanel';
 import { motion, AnimatePresence } from 'framer-motion';
 import { computeDualSpiral, LAYER_ORDER } from '@/utils/layout/spiralLayout';
 import { THEORIES, EVENTS, MATH_TOOLS, PROOFS, CROSS_LINKS } from '@/data';
@@ -33,7 +35,7 @@ export function TheoryDetail({ theoryId }: TheoryDetailProps) {
   const theory = THEORIES.find((t) => t.id === theoryId);
   if (!theory) return null;
 
-  // 由父组件条件渲染控制挂载；hooks 调用顺序始终一致。
+  // 父组件以 AnimatePresence 条件渲染；内部 hooks 顺序始终一致。
   /* eslint-disable react-hooks/rules-of-hooks */
   const perspective = useViewStore((s) => s.perspective);
   const setPerspective = useViewStore((s) => s.setPerspective);
@@ -52,6 +54,10 @@ export function TheoryDetail({ theoryId }: TheoryDetailProps) {
 
   const showHistory = perspective === 'dual' || perspective === 'history';
   const showMath = perspective === 'dual' || perspective === 'math';
+  /* eslint-disable react-hooks/rules-of-hooks */
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [showPanel, setShowPanel] = useState(false);
+  /* eslint-enable react-hooks/rules-of-hooks */
 
   return (
     <motion.div
@@ -96,9 +102,10 @@ export function TheoryDetail({ theoryId }: TheoryDetailProps) {
         </div>
       </div>
 
-      {/* SVG 螺旋画布 */}
-      <div className="min-h-0 flex-1 px-2 py-2">
-        <svg
+      {/* SVG 螺旋画布 + 侧边详情面板 */}
+      <div className="flex min-h-0 flex-1">
+        <div className={`min-h-0 flex-1 px-2 py-2 transition-all ${showPanel ? 'max-w-xl' : ''}`}>
+          <svg
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
           preserveAspectRatio="xMidYMid meet"
           className="h-full w-full"
@@ -190,14 +197,17 @@ export function TheoryDetail({ theoryId }: TheoryDetailProps) {
               {layout.historyNodes.map((node, i) => {
                 const ev = EVENTS.find((e) => e.id === node.id);
                 if (!ev) return null;
+                const isSelected = selectedNodeId === node.id;
                 return (
                   <motion.g
                     key={node.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, delay: i * 0.12 }}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => { setSelectedNodeId(node.id); setShowPanel(true); }}
                   >
-                    <circle cx={node.x} cy={node.y} r={7} fill={themeColor} fillOpacity={0.9} />
+                    <circle cx={node.x} cy={node.y} r={isSelected ? 10 : 7} fill={themeColor} fillOpacity={isSelected ? 1 : 0.9} />
                     <text x={node.x - 18} y={node.y + 4} textAnchor="end" fontSize={11} fill="#94A3B8">
                       {node.year}
                     </text>
@@ -251,12 +261,15 @@ export function TheoryDetail({ theoryId }: TheoryDetailProps) {
               {layout.mathNodes.map((node, i) => {
                 const mt = MATH_TOOLS.find((m) => m.id === node.id);
                 if (!mt) return null;
+                const isSelected = selectedNodeId === node.id;
                 return (
                   <motion.g
                     key={node.id}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, delay: i * 0.12 + 0.3 }}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => { setSelectedNodeId(node.id); setShowPanel(true); }}
                   >
                     <rect
                       x={node.x - 6}
@@ -265,7 +278,7 @@ export function TheoryDetail({ theoryId }: TheoryDetailProps) {
                       height={28}
                       rx={4}
                       fill={themeColor}
-                      fillOpacity={0.3}
+                      fillOpacity={isSelected ? 0.7 : 0.3}
                     />
                     <text x={node.x + 16} y={node.y - 4} fontSize={13} fill="#E2E8F0" className="select-none">
                       {node.name}
@@ -294,6 +307,18 @@ export function TheoryDetail({ theoryId }: TheoryDetailProps) {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* 侧边详情面板（点击节点后滑入） */}
+      <AnimatePresence>
+        {showPanel && selectedNodeId && (
+          <DetailPanel
+            theoryId={theoryId}
+            selectedNodeId={selectedNodeId}
+            onClose={() => setShowPanel(false)}
+          />
+        )}
+      </AnimatePresence>
       </div>
     </motion.div>
   );
