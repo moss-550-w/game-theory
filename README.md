@@ -2,7 +2,8 @@
 
 一个以**四大理论支柱**为骨架的博弈论思想演进可视化交互应用，帮助学习者从“理论版图”到“证明细节”再到“经典模型验证”，建立对博弈论演化脉络的整体认知。
 
-![license](https://img.shields.io/github/license/your-org/game-theory-viz)
+[![license](https://img.shields.io/github/license/moss-550-w/game-theory)](./LICENSE)
+[![demo](https://img.shields.io/badge/网站预览-在线演示-blue?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBkPSJNNTAgMTBMODAgODBIMjBWMTBaIiBmaWxsPSIjNjg4OEZGIi8+PC9zdmc+)](https://moss-550-w.github.io/game-theory/)
 ![tech](https://img.shields.io/badge/React-18-61DAFB?logo=react)
 ![tech](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
 ![tech](https://img.shields.io/badge/Vite-5-646CFF?logo=vite)
@@ -176,9 +177,12 @@ npm run test:e2e
 
 ## 部署
 
-项目默认配置为通过 Vercel 部署。`vite.config.ts` 中设置了 `base: '/game-theory/'`，如需部署到自定义路径或根域名，请相应调整。
+项目已配置 GitHub Pages 自动部署。
 
-GitHub Actions 工作流位于 `.github/workflows/deploy.yml`，支持预览分支自动部署。
+- **在线预览**：[https://moss-550-w.github.io/game-theory/](https://moss-550-w.github.io/game-theory/)
+- 部署 workflow 位于 `.github/workflows/deploy.yml`，推送到 `main` 分支时自动触发。
+
+`vite.config.ts` 中设置了 `base: '/game-theory/'`，如需部署到自定义路径或根域名，请相应调整。
 
 ---
 
