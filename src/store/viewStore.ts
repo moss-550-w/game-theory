@@ -8,7 +8,11 @@ import { create } from 'zustand';
 
 type ViewMode = 'quadrant' | 'detail' | 'simulator';
 type Perspective = 'dual' | 'history' | 'math';
-type SimulatorId = 'prisoners-dilemma' | 'backward-induction' | 'mixed-strategy';
+export type SimulatorId =
+  | 'prisoners-dilemma'
+  | 'backward-induction'
+  | 'mixed-strategy'
+  | 'fixed-point';
 
 interface ViewState {
   /** 当前视图模式 */

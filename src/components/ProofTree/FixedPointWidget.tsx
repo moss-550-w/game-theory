@@ -23,6 +23,8 @@ const VARIANT_HINT: Record<Variant, string> = {
 interface FixedPointWidgetProps {
   variant: Variant;
   themeColor: string;
+  /** 绘图区边长（px），默认 300；全屏模拟器可放大。 */
+  size?: number;
 }
 
 /**
@@ -33,9 +35,9 @@ interface FixedPointWidgetProps {
  * 拖拽机制与控制点视觉已抽到 @/components/ui（useDraggableValues + DragHandle），
  * 坐标换算抽到 @/utils/plotting/scale，供后续三支柱交互件复用。
  */
-export function FixedPointWidget({ variant, themeColor }: FixedPointWidgetProps) {
+export function FixedPointWidget({ variant, themeColor, size = 300 }: FixedPointWidgetProps) {
   const reduce = useReducedMotion();
-  const scale = useMemo(() => createPlotScale(300, 34), []);
+  const scale = useMemo(() => createPlotScale(size, 34), [size]);
   const band = isBandVariant(variant);
 
   // tarski：拖拽后强制 y 非减（格上单调映射）
@@ -86,8 +88,8 @@ export function FixedPointWidget({ variant, themeColor }: FixedPointWidgetProps)
       <svg
         ref={svgRef}
         viewBox={`0 0 ${scale.view} ${scale.view}`}
-        className="mx-auto block h-auto w-full max-w-[300px] select-none"
-        style={{ touchAction: 'none' }}
+        className="mx-auto block h-auto w-full select-none"
+        style={{ touchAction: 'none', maxWidth: size }}
         role="img"
         aria-label={`${variant} 不动点交互图：${readout}`}
         {...containerHandlers}
@@ -114,7 +116,13 @@ export function FixedPointWidget({ variant, themeColor }: FixedPointWidgetProps)
           {intervals.map((iv, i) => (
             <motion.line
               key={i}
-              initial={{ opacity: 0 }}
+              initial={{
+                opacity: 0,
+                x1: scale.sx(iv.start),
+                y1: scale.sy(iv.start),
+                x2: scale.sx(iv.end),
+                y2: scale.sy(iv.end),
+              }}
               animate={{
                 opacity: 1,
                 x1: scale.sx(iv.start),
@@ -185,6 +193,7 @@ export function FixedPointWidget({ variant, themeColor }: FixedPointWidgetProps)
                     fill="none"
                     stroke="#34D399"
                     strokeWidth={1.5}
+                    initial={{ cx, cy }}
                     animate={{ cx, cy, r: [5, 12], opacity: [0.5, 0] }}
                     transition={{
                       cx: followSpring,
@@ -197,7 +206,7 @@ export function FixedPointWidget({ variant, themeColor }: FixedPointWidgetProps)
                 {/* 实心点：cx/cy 弹簧跟手；诞生时 r 0→5 弹出 */}
                 <motion.circle
                   fill="#34D399"
-                  initial={{ r: reduce ? 5 : 0 }}
+                  initial={{ cx, cy, r: reduce ? 5 : 0 }}
                   animate={{ cx, cy, r: 5 }}
                   transition={{ cx: followSpring, cy: followSpring, r: popSpring }}
                 />

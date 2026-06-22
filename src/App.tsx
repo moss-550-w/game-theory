@@ -8,6 +8,8 @@ import {
   PrisonersDilemmaSimulator,
   BackwardInductionSimulator,
   MixedStrategySimulator,
+  FixedPointSimulator,
+  SimulatorLauncher,
 } from '@/components/Simulators';
 import { useViewStore } from '@/store/viewStore';
 import { useFilterStore } from '@/store/filterStore';
@@ -17,6 +19,7 @@ const SIMULATOR_COMPONENTS = {
   'prisoners-dilemma': PrisonersDilemmaSimulator,
   'backward-induction': BackwardInductionSimulator,
   'mixed-strategy': MixedStrategySimulator,
+  'fixed-point': FixedPointSimulator,
 } as const;
 
 export default function App() {
@@ -73,6 +76,7 @@ export default function App() {
             <TagFilter />
             <ApplicationFilter />
             <CompareModeToggle />
+            <SimulatorLauncher />
           </motion.div>
         )}
       </header>

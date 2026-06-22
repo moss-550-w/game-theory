@@ -3,17 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PROOFS, MATH_TOOLS, CROSS_LINKS } from '@/data';
 import { getProofsForTheory } from '@/utils/layout/proofTreeLayout';
 import { THEORY_COLOR } from '@/utils/theoryColor';
-import { FixedPointWidget } from './FixedPointWidget';
-import type { Variant } from '@/utils/solvers/fixedPoint';
 import type { ProofBranch, TheoryId, MathLayer } from '@/types';
-
-/** 携带交互式不动点几何替身的数学工具 → 变体。 */
-const FIXED_POINT_VARIANTS: Record<string, Variant> = {
-  brouwer: 'brouwer',
-  kakutani: 'kakutani',
-  tarski: 'tarski',
-  'fan-glicksberg': 'fan-glicksberg',
-};
 
 const LAYER_LABEL: Record<MathLayer, string> = {
   foundation: '底层基础',
@@ -141,11 +131,6 @@ function ProofBranch({ branch, tool, themeColor }: ProofBranchProps) {
                   </h4>
                   <p className="mt-1 text-sm italic text-slate-400">{branch.analogy}</p>
                 </div>
-              )}
-
-              {/* 不动点定理：内嵌交互式几何替身 */}
-              {FIXED_POINT_VARIANTS[tool.id] && (
-                <FixedPointWidget variant={FIXED_POINT_VARIANTS[tool.id]} themeColor={themeColor} />
               )}
 
               {/* 关联 crosslink 提示 */}
