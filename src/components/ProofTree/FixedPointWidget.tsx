@@ -1,4 +1,4 @@
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useMemo, useCallback } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import {
   ANCHOR_XS,
@@ -8,14 +8,10 @@ import {
   clampMonotone,
   findSetValuedFixedPoints,
   isBandVariant,
-  clamp01,
   type Variant,
-  type Pt,
 } from '@/utils/solvers/fixedPoint';
-
-const VIEW = 300;
-const PAD = 34;
-const PLOT = VIEW - PAD * 2;
+import { createPlotScale, pointsToPath, bandToPath, clamp01, type Pt } from '@/utils/plotting/scale';
+import { useDraggableValues, DragHandle } from '@/components/ui';
 
 const VARIANT_HINT: Record<Variant, string> = {
   brouwer: '拖动控制点改变连续映射 f，曲线与对角线 y=x 的交点即不动点——无论怎么拖，交点始终存在。',
@@ -23,15 +19,6 @@ const VARIANT_HINT: Record<Variant, string> = {
   tarski: '单调映射：拖动时自动保持非减，高亮显示最小与最大不动点（不动点集成格）。',
   'fan-glicksberg': '连续策略空间上的集值映射：带与对角线的交集即均衡，把存在性推广到无限策略。',
 };
-
-const unitToX = (u: number) => PAD + u * PLOT;
-const unitToY = (v: number) => PAD + (1 - v) * PLOT;
-
-function pathOf(points: Pt[]): string {
-  return points
-    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${unitToX(p.x).toFixed(1)} ${unitToY(p.y).toFixed(1)}`)
-    .join(' ');
-}
 
 interface FixedPointWidgetProps {
   variant: Variant;
@@ -42,52 +29,39 @@ interface FixedPointWidgetProps {
  * 不动点交互件（planv2.md 第一交付物）。
  * 把「连续自映射必有不动点」做成可拖曲线 ∩ 对角线：用户拖动控制点破坏映射，
  * 交点实时重算且始终存在——抽象命题变成可被手破坏、再自我恢复的几何不变量。
+ *
+ * 拖拽机制与控制点视觉已抽到 @/components/ui（useDraggableValues + DragHandle），
+ * 坐标换算抽到 @/utils/plotting/scale，供后续三支柱交互件复用。
  */
 export function FixedPointWidget({ variant, themeColor }: FixedPointWidgetProps) {
   const reduce = useReducedMotion();
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const dragIdx = useRef<number | null>(null);
-  const [ys, setYs] = useState<number[]>(() => [...DEFAULT_YS[variant]]);
-
+  const scale = useMemo(() => createPlotScale(300, 34), []);
   const band = isBandVariant(variant);
 
+  // tarski：拖拽后强制 y 非减（格上单调映射）
+  const constrain = useCallback(
+    (vals: number[]) =>
+      variant === 'tarski'
+        ? clampMonotone(vals.map((y, i) => ({ x: ANCHOR_XS[i], y }))).map((p) => p.y)
+        : vals,
+    [variant],
+  );
+
+  const { svgRef, values: ys, draggingIndex, startDrag, containerHandlers } = useDraggableValues({
+    initial: DEFAULT_YS[variant],
+    scale,
+    axis: 'y',
+    constrain,
+  });
+
   const centerPts: Pt[] = ys.map((y, i) => ({ x: ANCHOR_XS[i], y }));
-  // 单值映射：tarski 显示前先强制单调
-  const curvePts: Pt[] = variant === 'tarski' ? clampMonotone(centerPts) : centerPts;
   const lowerPts: Pt[] = centerPts.map((p) => ({ x: p.x, y: clamp01(p.y - BAND_HALF_WIDTH) }));
   const upperPts: Pt[] = centerPts.map((p) => ({ x: p.x, y: clamp01(p.y + BAND_HALF_WIDTH) }));
 
-  const fixedPoints = band ? [] : findFixedPoints(curvePts);
+  const fixedPoints = band ? [] : findFixedPoints(centerPts);
   const intervals = band ? findSetValuedFixedPoints(lowerPts, upperPts) : [];
   const least = fixedPoints.length ? Math.min(...fixedPoints) : null;
   const greatest = fixedPoints.length ? Math.max(...fixedPoints) : null;
-
-  function yFromPointer(e: ReactPointerEvent): number {
-    const svg = svgRef.current;
-    if (!svg) return 0;
-    const rect = svg.getBoundingClientRect();
-    const svgY = ((e.clientY - rect.top) / rect.height) * VIEW;
-    return clamp01(1 - (svgY - PAD) / PLOT);
-  }
-
-  function applyDrag(e: ReactPointerEvent) {
-    const idx = dragIdx.current;
-    if (idx === null) return;
-    const next = ys.slice();
-    next[idx] = yFromPointer(e);
-    setYs(variant === 'tarski' ? clampMonotone(next.map((y, i) => ({ x: ANCHOR_XS[i], y }))).map((p) => p.y) : next);
-  }
-
-  function startDrag(idx: number, e: ReactPointerEvent) {
-    dragIdx.current = idx;
-    (e.target as Element).setPointerCapture?.(e.pointerId);
-  }
-
-  function endDrag(e: ReactPointerEvent) {
-    if (dragIdx.current === null) return;
-    dragIdx.current = null;
-    (e.target as Element).releasePointerCapture?.(e.pointerId);
-  }
 
   // 无障碍：文字冗余读出当前不动点（颜色 + 文字双编码）
   const readout = band
@@ -105,29 +79,27 @@ export function FixedPointWidget({ variant, themeColor }: FixedPointWidgetProps)
 
       <svg
         ref={svgRef}
-        viewBox={`0 0 ${VIEW} ${VIEW}`}
+        viewBox={`0 0 ${scale.view} ${scale.view}`}
         className="mx-auto block h-auto w-full max-w-[300px] select-none"
         style={{ touchAction: 'none' }}
         role="img"
         aria-label={`${variant} 不动点交互图：${readout}`}
-        onPointerMove={applyDrag}
-        onPointerUp={endDrag}
-        onPointerLeave={endDrag}
+        {...containerHandlers}
       >
         {/* 绘图区边框 */}
-        <rect x={PAD} y={PAD} width={PLOT} height={PLOT} fill="none" stroke="#1E293B" />
+        <rect x={scale.pad} y={scale.pad} width={scale.plot} height={scale.plot} fill="none" stroke="#1E293B" />
 
         {/* 对角线 y = x */}
         <line
-          x1={unitToX(0)}
-          y1={unitToY(0)}
-          x2={unitToX(1)}
-          y2={unitToY(1)}
+          x1={scale.sx(0)}
+          y1={scale.sy(0)}
+          x2={scale.sx(1)}
+          y2={scale.sy(1)}
           stroke="#475569"
           strokeWidth={1.5}
           strokeDasharray="4 4"
         />
-        <text x={unitToX(1) - 4} y={unitToY(1) + 14} textAnchor="end" fontSize={10} fill="#64748B">
+        <text x={scale.sx(1) - 4} y={scale.sy(1) + 14} textAnchor="end" fontSize={10} fill="#64748B">
           y = x
         </text>
 
@@ -135,10 +107,10 @@ export function FixedPointWidget({ variant, themeColor }: FixedPointWidgetProps)
         {intervals.map((iv) => (
           <line
             key={`iv-${iv.start.toFixed(3)}`}
-            x1={unitToX(iv.start)}
-            y1={unitToY(iv.start)}
-            x2={unitToX(iv.end)}
-            y2={unitToY(iv.end)}
+            x1={scale.sx(iv.start)}
+            y1={scale.sy(iv.start)}
+            x2={scale.sx(iv.end)}
+            y2={scale.sy(iv.end)}
             stroke="#34D399"
             strokeWidth={6}
             strokeLinecap="round"
@@ -148,23 +120,16 @@ export function FixedPointWidget({ variant, themeColor }: FixedPointWidgetProps)
         {/* band 变体：上下边界 + 填充带 */}
         {band ? (
           <>
-            <path
-              d={`${pathOf(lowerPts)} L ${unitToX(upperPts[upperPts.length - 1].x)} ${unitToY(
-                upperPts[upperPts.length - 1].y,
-              )} ${[...upperPts].reverse().map((p) => `L ${unitToX(p.x).toFixed(1)} ${unitToY(p.y).toFixed(1)}`).join(' ')} Z`}
-              fill={themeColor}
-              fillOpacity={0.15}
-              stroke="none"
-            />
-            <path d={pathOf(lowerPts)} fill="none" stroke={themeColor} strokeWidth={1.5} strokeOpacity={0.7} />
-            <path d={pathOf(upperPts)} fill="none" stroke={themeColor} strokeWidth={1.5} strokeOpacity={0.7} />
+            <path d={bandToPath(lowerPts, upperPts, scale)} fill={themeColor} fillOpacity={0.15} stroke="none" />
+            <path d={pointsToPath(lowerPts, scale)} fill="none" stroke={themeColor} strokeWidth={1.5} strokeOpacity={0.7} />
+            <path d={pointsToPath(upperPts, scale)} fill="none" stroke={themeColor} strokeWidth={1.5} strokeOpacity={0.7} />
           </>
         ) : (
           <motion.path
             initial={reduce ? false : { pathLength: 0 }}
             animate={reduce ? undefined : { pathLength: 1 }}
             transition={{ duration: 0.5 }}
-            d={pathOf(curvePts)}
+            d={pointsToPath(centerPts, scale)}
             fill="none"
             stroke={themeColor}
             strokeWidth={2.5}
@@ -178,11 +143,11 @@ export function FixedPointWidget({ variant, themeColor }: FixedPointWidgetProps)
           return (
             <g key={`fp-${fp.toFixed(3)}`}>
               {reduce ? (
-                <circle cx={unitToX(fp)} cy={unitToY(fp)} r={5} fill="#34D399" />
+                <circle cx={scale.sx(fp)} cy={scale.sy(fp)} r={5} fill="#34D399" />
               ) : (
                 <motion.circle
-                  cx={unitToX(fp)}
-                  cy={unitToY(fp)}
+                  cx={scale.sx(fp)}
+                  cy={scale.sy(fp)}
                   r={5}
                   fill="#34D399"
                   animate={{ r: [5, 8, 5] }}
@@ -190,13 +155,7 @@ export function FixedPointWidget({ variant, themeColor }: FixedPointWidgetProps)
                 />
               )}
               {(isLeast || isGreatest) && (
-                <text
-                  x={unitToX(fp)}
-                  y={unitToY(fp) - 12}
-                  textAnchor="middle"
-                  fontSize={9}
-                  fill="#34D399"
-                >
+                <text x={scale.sx(fp)} y={scale.sy(fp) - 12} textAnchor="middle" fontSize={9} fill="#34D399">
                   {isLeast ? '最小' : '最大'}
                 </text>
               )}
@@ -204,24 +163,18 @@ export function FixedPointWidget({ variant, themeColor }: FixedPointWidgetProps)
           );
         })}
 
-        {/* 可拖控制点 */}
+        {/* 可拖控制点（通用原语 DragHandle） */}
         {centerPts.map((p, i) => (
-          <circle
+          <DragHandle
             key={`anchor-${i}`}
-            cx={unitToX(p.x)}
-            cy={unitToY(p.y)}
-            r={7}
-            fill={themeColor}
-            fillOpacity={0.9}
-            stroke="#0F172A"
-            strokeWidth={1.5}
-            style={{ cursor: 'ns-resize' }}
-            onPointerDown={(e) => startDrag(i, e)}
-            role="slider"
-            aria-label={`控制点 ${i + 1}，当前高度 ${p.y.toFixed(2)}`}
-            aria-valuemin={0}
-            aria-valuemax={1}
-            aria-valuenow={Number(p.y.toFixed(2))}
+            cx={scale.sx(p.x)}
+            cy={scale.sy(p.y)}
+            index={i}
+            color={themeColor}
+            axis="y"
+            valueNow={p.y}
+            active={draggingIndex === i}
+            onPointerDown={startDrag}
           />
         ))}
       </svg>
