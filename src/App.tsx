@@ -4,26 +4,40 @@ import { RingToggles } from '@/components/QuadrantView/RingToggles';
 import { CompareCards } from '@/components/Filters/CompareMode';
 import { TagFilter, ApplicationFilter, CompareModeToggle } from '@/components/Filters/TagFilter';
 import { TheoryDetail } from '@/components/TheoryDetail/TheoryDetail';
+import {
+  PrisonersDilemmaSimulator,
+  BackwardInductionSimulator,
+  MixedStrategySimulator,
+} from '@/components/Simulators';
 import { useViewStore } from '@/store/viewStore';
 import { useFilterStore } from '@/store/filterStore';
 import type { TheoryId } from '@/types';
 
+const SIMULATOR_COMPONENTS = {
+  'prisoners-dilemma': PrisonersDilemmaSimulator,
+  'backward-induction': BackwardInductionSimulator,
+  'mixed-strategy': MixedStrategySimulator,
+} as const;
+
 export default function App() {
   const mode = useViewStore((s) => s.mode);
   const focusedId = useViewStore((s) => s.focusedTheory);
+  const activeSimulator = useViewStore((s) => s.activeSimulator);
   const compareMode = useFilterStore((s) => s.compareSelection.length >= 2);
 
   const handleSelectTheory = (id: TheoryId) => {
-    if (useFilterStore.getState().compareSelection.length >= 2) {
-      // 对比模式下不进入深度视图，由对比卡片处理跳转
-      return;
-    }
+    if (useFilterStore.getState().compareSelection.length >= 2) return;
     useViewStore.getState().focusTheory(id);
   };
 
   const handleToggleCompare = (id: TheoryId) => {
     useFilterStore.getState().toggleCompare(id);
   };
+
+  const SimulatorComponent =
+    activeSimulator && SIMULATOR_COMPONENTS[activeSimulator]
+      ? SIMULATOR_COMPONENTS[activeSimulator]
+      : null;
 
   return (
     <div className="flex h-screen flex-col bg-canvas-bg text-slate-100">
@@ -34,7 +48,9 @@ export default function App() {
             <p className="mt-1 text-sm text-slate-400">
               {mode === 'detail'
                 ? '深度探索视图 · 双重螺旋'
-                : '四象限理论版图 · 点击任一支柱进入深度探索'}
+                : mode === 'simulator'
+                  ? '交互模拟器'
+                  : '四象限理论版图 · 点击任一支柱进入深度探索'}
             </p>
           </div>
           <RingToggles />
@@ -57,6 +73,8 @@ export default function App() {
         <AnimatePresence mode="wait">
           {mode === 'detail' && focusedId ? (
             <TheoryDetail key="detail" theoryId={focusedId as TheoryId} />
+          ) : mode === 'simulator' && SimulatorComponent ? (
+            <SimulatorComponent key="simulator" />
           ) : (
             <QuadrantView
               key="quadrant"

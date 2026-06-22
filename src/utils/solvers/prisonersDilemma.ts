@@ -34,11 +34,9 @@ export function payoff(a: Choice, b: Choice, cfg: PDConfig = DEFAULT_PD): [numbe
 
 export function isNashEquilibrium(a: Choice, b: Choice, cfg: PDConfig = DEFAULT_PD): boolean {
   const [pa, pb] = payoff(a, b, cfg);
-  const [pa2, pb2] = payoff('defect', b, cfg);
-  const [pa3, pb3] = payoff(a, 'defect', cfg);
-  // A 单方面改到 defect 不能改善
+  const pa2 = payoff('defect', b, cfg)[0]; // A 单方面改到 defect
+  const pb3 = payoff(a, 'defect', cfg)[1]; // B 单方面改到 defect
   if (a === 'defect' ? pa2 > pa : pa2 >= pa) return false;
-  // B 单方面改到 defect 不能改善
   if (b === 'defect' ? pb3 > pb : pb3 >= pb) return false;
   return true;
 }

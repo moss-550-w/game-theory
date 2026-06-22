@@ -3,9 +3,11 @@ import {
   payoff,
   isNashEquilibrium,
   getEquilibriumState,
-  DEFAULT_PD,
 } from '@/utils/solvers/prisonersDilemma';
-import { expectedPayoffA, expectedPayoffB, solveMixedStrategy, PD_MATRIX } from '@/utils/solvers/mixedStrategy';
+import {
+  expectedPayoffA,
+  solveMixedStrategy,
+} from '@/utils/solvers/mixedStrategy';
 import { solveBackwardInduction, type GameNode } from '@/utils/solvers/backwardInduction';
 
 describe('囚徒困境求解器', () => {
@@ -44,32 +46,27 @@ describe('囚徒困境求解器', () => {
 
 describe('混合策略求解器', () => {
   it('囚徒困境混合均衡：p*=0, q*=0（纯策略纳什均衡）', () => {
-    const result = solveMixedStrategy(PD_MATRIX);
+    // A: [R, S, T, P] = [3, 0, 5, 1]
+    // B: [R, T, S, P] = [3, 5, 0, 1]
+    const result = solveMixedStrategy({
+      A: [3, 0, 5, 1],
+      B: [3, 5, 0, 1],
+    });
     expect(result.pStar).toBeCloseTo(0);
     expect(result.qStar).toBeCloseTo(0);
   });
 
   it('期望收益计算：双方合作时 A 得 3', () => {
-    expect(expectedPayoffA(1, 1, PD_MATRIX)).toBeCloseTo(3);
+    expect(expectedPayoffA(1, 1, { A: [3, 0, 5, 1], B: [3, 5, 0, 1] })).toBeCloseTo(3);
   });
 
   it('期望收益计算：双方背叛时 A 得 1', () => {
-    expect(expectedPayoffA(0, 0, PD_MATRIX)).toBeCloseTo(1);
+    expect(expectedPayoffA(0, 0, { A: [3, 0, 5, 1], B: [3, 5, 0, 1] })).toBeCloseTo(1);
   });
 
-  it('石头剪刀布混合均衡：各 1/3', () => {
-    // 石头=0, 剪刀=1, 布=2
-    // 行玩家收益: 赢1 平0 输-1
-    const rps: typeof PD_MATRIX = {
-      A: [0, -1, 1, 0, 0, 1, -1, 0, 0],
-      B: [0, 1, -1, 0, 0, -1, 1, 0, 0],
-    };
-    // Note: this is a 3x3, not directly applicable to 2x2 solver.
-    // For 2x2 matching pennies:
-    const mp: typeof PD_MATRIX = {
-      A: [1, -1, -1, 1], // A: 左上=1, 右上=-1, 左下=-1, 右下=1
-      B: [-1, 1, 1, -1], // B: 相反
-    };
+  it('猜硬币混合均衡：各 0.5', () => {
+    // 猜硬币：行收益矩阵 [1, -1, -1, 1]
+    const mp = { A: [1, -1, -1, 1] as [number, number, number, number], B: [-1, 1, 1, -1] as [number, number, number, number] };
     const result = solveMixedStrategy(mp);
     expect(result.pStar).toBeCloseTo(0.5);
     expect(result.qStar).toBeCloseTo(0.5);
@@ -104,11 +101,10 @@ describe('逆向归纳求解器', () => {
     const result = solveBackwardInduction(simpleTree);
     expect(result.complete).toBe(true);
     expect(result.equilibriumPath.length).toBeGreaterThan(0);
-    // 最优行动应选 payoff 最大的子节点
     expect(result.optimalActions.has('root')).toBe(true);
   });
 
-  it('直接返回路径中的节点 id', () => {
+  it('返回路径中的节点 id', () => {
     const result = solveBackwardInduction(simpleTree);
     expect(result.equilibriumPath).toContain('root');
   });
