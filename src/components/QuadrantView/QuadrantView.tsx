@@ -1,11 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { computeQuadrantLayout } from '@/utils/layout/quadrantLayout';
 import { THEORIES } from '@/data';
-import {
-  useFilterStore,
-  theoryMatchesTags,
-  getTheoriesForApplication,
-} from '@/store/filterStore';
+import { useFilterStore, theoryMatchesTags, getTheoriesForApplication } from '@/store/filterStore';
 import type { Theory, TheoryId } from '@/types';
 import { QuadrantCell } from './QuadrantCell';
 import { RelationArrows } from './RelationArrows';
@@ -14,7 +10,6 @@ import { ApplicationRing } from './ApplicationRing';
 
 const VIEW_W = 1000;
 const VIEW_H = 800;
-
 const RING_PAD = 38;
 
 interface QuadrantViewProps {
@@ -34,8 +29,6 @@ export function QuadrantView({
     () => computeQuadrantLayout({ width: VIEW_W, height: VIEW_H }),
     [],
   );
-  const [hovered, setHovered] = useState<TheoryId | null>(null);
-
   const activeTags = useFilterStore((s) => s.activeTags);
   const activeApplication = useFilterStore((s) => s.activeApplication);
   const compareSelection = useFilterStore((s) => s.compareSelection);
@@ -109,11 +102,11 @@ export function QuadrantView({
             key={box.quadrant}
             box={box}
             theory={theory}
-            focused={hovered === theory.id}
+            focused={false}
             dimmed={dimmed}
             inCompare={inCompare}
             compareMode={compareMode}
-            onHover={setHovered}
+            onHover={() => {}}
             onSelect={onSelectTheory ?? (() => {})}
             onToggleCompare={onToggleCompare}
           />

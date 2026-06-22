@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { QuadrantView } from '@/components/QuadrantView/QuadrantView';
+import { ResponsiveQuadrantView } from '@/components/QuadrantView/ResponsiveQuadrantView';
 import { RingToggles } from '@/components/QuadrantView/RingToggles';
 import { CompareCards } from '@/components/Filters/CompareMode';
 import { TagFilter, ApplicationFilter, CompareModeToggle } from '@/components/Filters/TagFilter';
@@ -76,7 +76,7 @@ export default function App() {
           ) : mode === 'simulator' && SimulatorComponent ? (
             <SimulatorComponent key="simulator" />
           ) : (
-            <QuadrantView
+            <ResponsiveQuadrantView
               key="quadrant"
               compareMode={compareMode}
               onToggleCompare={handleToggleCompare}
